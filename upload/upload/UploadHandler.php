@@ -10,7 +10,7 @@
  * Licensed under the MIT license:
  * http://www.opensource.org/licenses/MIT
  */
-
+header("Content-Type:text/html; charset=utf-8");
 class UploadHandler
 {
 
@@ -82,22 +82,29 @@ class UploadHandler
             'download_via_php' => false,
             // Read files in chunks to avoid memory limits when download_via_php
             // is enabled, set to 0 to disable chunked reading of files:
-            'readfile_chunk_size' => 10 * 1024 * 1024, // 10 MiB
+            // 設置大小，如果文件小於設置大小的話，放入內存中
+            'readfile_chunk_size' => 1.5 * 1024 * 1024, // 1.5 MiB
             // Defines which files can be displayed inline when downloaded:
-            'inline_file_types' => '/\.(gif|jpe?g|png)$/i',
+            'inline_file_types' => '/\.(gif|jpe?g|png|doc?x|xls?x|ppt?x|pdf|txt)$/i',
             // Defines which files (based on their names) are accepted for upload:
-            'accept_file_types' => '/.+$/i',
+            // 定義可上傳的檔案類型，如果不想限制可以輸入: 'accept_file_types' =>'/.+$/i',
+            //限定 圖檔: '/\.(gif|jpe?g|png)$/i',
+            //限定一般文件 '/\.(doc?x|xls?x|ppt?x|pdf|txt)$/i',
+            'accept_file_types' => '/\.(gif|jpe?g|png|doc?x|xls?x|ppt?x|pdf|txt)$/i',
             // The php.ini settings upload_max_filesize and post_max_size
             // take precedence over the following max_file_size setting:
-            'max_file_size' => null,
+            //限制檔案大小
+            'max_file_size' => 1.5*1024*1024,// 1.5 MiB
             'min_file_size' => 1,
             // The maximum number of files for the upload directory:
+            //最多可上傳至多少資料夾
             'max_number_of_files' => null,
             // Defines which files are handled as image files:
             'image_file_types' => '/\.(gif|jpe?g|png)$/i',
             // Image resolution restrictions:
-            'max_width' => null,
-            'max_height' => null,
+            //設定圖片最大/小尺寸
+            'max_width' => 1920,
+            'max_height' => 1920,
             'min_width' => 1,
             'min_height' => 1,
             // Set the following option to false to enable resumable uploads:
@@ -126,7 +133,7 @@ class UploadHandler
             'identify_bin' => 'identify',
 
             /*-----------------------------------------
-            | 上傳資料夾及圖片大小設定
+            | 上傳資料夾及圖片壓縮設定
             \------------------------------------------*/
 
             'image_versions' => array(
@@ -478,14 +485,17 @@ class UploadHandler
         }
         /*
         |自定檔案名稱
-        |這裡是用絕對時間經過md5處理後，取得前15字元
-        */
-        /* 暫時關閉
-        $Ext = strrchr($name,".");
+        |可以使用絕對時間經過md5處理後，取得前15字元
         $name = md5(uniqid(rand()));
         $name = substr($name,0,15);
-        $name = $name."$Ext";
         */
+        /*
+        如果沒有使用唯一時間作為檔名，在windows環境要記得檔名不可為中文
+        */
+        $Ext = strrchr($name,".");
+        $name = uniqid(rand());
+        $name = $name."$Ext";
+        
 
         return $name;
     }
